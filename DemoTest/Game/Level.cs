@@ -6,12 +6,17 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Storage;
+using Microsoft.Xna.Framework.GamerServices;
 
 namespace DemoTest
 {
     class Level
     {
         private Tile[,] tiles;
+
+        private Layer[] layers;
+        private const int EntityLayer = 2;
 
         public ContentManager Content
         {
@@ -25,10 +30,23 @@ namespace DemoTest
         }
         Player player;
 
+        public bool ReachedExit
+        {
+            get { return reachedExit; }
+        }
+        bool reachedExit;
+
         // Key locations in the level.        
         private Vector2 start;
         private Point exit = InvalidPosition;
         private static readonly Point InvalidPosition = new Point(-1, -1);
+
+        // Level game state
+        public float cameraPositionX;
+        public float cameraPositionY;
+
+        private List<Enemy> enemies = new List<Enemy>();
+        
 
         public Level(IServiceProvider serviceProvider, Stream fileStream, int levelIndex)
         {
@@ -36,6 +54,11 @@ namespace DemoTest
             content = new ContentManager(serviceProvider, "Content");           
 
             LoadTiles(fileStream);
+
+            layers = new Layer[3];
+            layers[0] = new Layer(Content, "Backgrounds/Layer0", 0.2f);
+            layers[1] = new Layer(Content, "Backgrounds/Layer1", 0.5f);
+            layers[2] = new Layer(Content, "Backgrounds/Layer2", 0.8f);
         }
 
         private void LoadTiles(Stream fileStream)
@@ -86,7 +109,14 @@ namespace DemoTest
 
                 // Impassable block
                 case '#':
-                    return LoadTile("whiteTile", TileCollision.Impassable);
+                    return LoadTile("slice_214", TileCollision.Impassable);
+
+                case 'A':
+                    return LoadEnemyTile(x, y, "EnemyA");
+
+                // Exit
+                case 'X':
+                    return LoadExitTile(x, y);
 
                 // Unknown tile type character
                 default:
@@ -96,6 +126,7 @@ namespace DemoTest
 
         private Tile LoadTile(string name, TileCollision collision)
         {
+            name = "Tiles/" + name;
             return new Tile(Content.Load<Texture2D>(name), collision);
         }
 
@@ -106,6 +137,27 @@ namespace DemoTest
 
             start = RectangleExtensions.GetBottomCenter(GetBounds(x, y));
             player = new Player(this, start);
+
+            return new Tile(null, TileCollision.Passable);
+        }
+
+        /// <summary>
+        /// Instantiates an enemy and puts him in the level.
+        /// </summary>
+        private Tile LoadEnemyTile(int x, int y, string spriteSet)
+        {
+            Vector2 position = RectangleExtensions.GetBottomCenter(GetBounds(x, y));
+            enemies.Add(new Enemy(this, position, spriteSet));
+
+            return new Tile(null, TileCollision.Passable);
+        }
+
+        private Tile LoadExitTile(int x, int y)
+        {
+            if (exit != InvalidPosition)
+                throw new NotSupportedException("A level may only have one exit.");
+
+            exit = GetBounds(x, y).Center;
 
             return new Tile(null, TileCollision.Passable);
         }
@@ -144,10 +196,27 @@ namespace DemoTest
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
+            spriteBatch.Begin();
+            for (int i = 0; i <= EntityLayer; ++i)
+                layers[i].Draw(spriteBatch, cameraPositionX, cameraPositionY);
+            spriteBatch.End();
 
+            ScrollCamera(spriteBatch.GraphicsDevice.Viewport);
+            Matrix cameraTransform = Matrix.CreateTranslation(-cameraPositionX, -cameraPositionY, 0.0f);
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, null, null, null, null, cameraTransform);
 
             DrawTiles(spriteBatch);
             Player.Draw(gameTime, spriteBatch);
+
+            foreach (Enemy enemy in enemies)
+                enemy.Draw(gameTime, spriteBatch);
+
+            spriteBatch.End();
+
+            spriteBatch.Begin();
+            for (int i = EntityLayer + 1; i < layers.Length; ++i)
+                layers[i].Draw(spriteBatch, cameraPositionX, cameraPositionY);
+            spriteBatch.End();
 
         }
 
@@ -158,15 +227,56 @@ namespace DemoTest
         {
             
             Player.Update(gameTime, keyboardState, gamePadState);
+
+            UpdateEnemies(gameTime);
+
+            if (Player.IsAlive &&
+                   Player.IsOnGround &&
+                   Player.BoundingRectangle.Contains(exit))
+            {
+                OnExitReached();
+            }
+
+            // Falling off the bottom of the level kills the player.
+            if (Player.BoundingRectangle.Top >= Height * Tile.Height)
+                OnPlayerKilled();
             
+        }
+
+        private void UpdateEnemies(GameTime gameTime)
+        {
+            foreach (Enemy enemy in enemies)
+            {
+                enemy.Update(gameTime);
+                int dmg;
+
+                // Enemy damages player
+                // Touching an enemy depletes the player hitpoints
+                if (enemy.BoundingRectangle.Intersects(Player.BoundingRectangle))
+                {
+                    if (player.Invulnerable != true)
+                    {
+                        dmg = enemy.str - player.vit;
+                        if (dmg <= 0)
+                            dmg = 1;
+                        player.hitPoints = player.hitPoints - dmg;
+                        player.Invulnerable = true;
+                    }
+                    
+                }
+            }
         }
 
         private void DrawTiles(SpriteBatch spriteBatch)
         {
+            int left = (int)Math.Floor(cameraPositionX / Tile.Width);
+            int right = left + spriteBatch.GraphicsDevice.Viewport.Width / Tile.Width;
+            right = Math.Min(right, Width - 1);
+
             // For each tile position
             for (int y = 0; y < Height; ++y)
             {
-                for (int x = 0; x < Width; ++x)
+                for (int x = left; x <= right; ++x)
                 {
                     // If there is a visible tile in that position
                     Texture2D texture = tiles[x, y].Texture;
@@ -178,6 +288,56 @@ namespace DemoTest
                     }
                 }
             }
+        }
+
+        private void ScrollCamera(Viewport viewport)
+        {    
+            
+            float cameraMovementX = 0.0f;
+            float cameraMovementY = 0.0f;
+            const float ViewMarginX = 0.5f;
+
+            // Calculate the edges of the screen.
+            float marginWidth = viewport.Width * ViewMarginX;
+            float marginLeft = cameraPositionX + marginWidth;
+            float marginRight = cameraPositionX + viewport.Width - marginWidth;
+
+            const float ViewMarginTop = 0.5f;
+            const float ViewMarginBottom = 0.5f;
+
+            float marginTop = cameraPositionY + viewport.Height * ViewMarginTop;
+            float marginBottom = cameraPositionY + viewport.Height - viewport.Height * ViewMarginBottom;
+
+            // Calculate how far to scroll when the player is near the edges of the screen.
+            
+            if (Player.Position.X < marginLeft)
+                cameraMovementX = Player.Position.X - marginLeft;
+            else if (Player.Position.X > marginRight)
+                cameraMovementX = Player.Position.X - marginRight;
+
+            float maxCameraPositionX;
+            maxCameraPositionX = Tile.Width * Width - viewport.Width;
+            cameraPositionX = MathHelper.Clamp(cameraPositionX + cameraMovementX, 0.0f, maxCameraPositionX);
+
+            
+            if (Player.Position.Y < marginTop)
+                cameraMovementY = player.Position.Y - marginTop;
+            else if (player.Position.Y > marginBottom)
+                cameraMovementY = player.Position.Y - marginBottom;
+
+            float maxCameraPositionY;
+            maxCameraPositionY = Tile.Height * Height - viewport.Height;
+            cameraPositionY = MathHelper.Clamp(cameraPositionY + cameraMovementY, 0.0f, maxCameraPositionY);
+        }
+
+        private void OnPlayerKilled()
+        {
+            Player.OnKilled();
+        }
+
+        private void OnExitReached()
+        {
+            reachedExit = true;
         }
 
     }
