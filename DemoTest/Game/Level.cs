@@ -97,26 +97,41 @@ namespace DemoTest
 
         private Tile LoadTile(char tileType, int x, int y)
         {
-            switch (tileType)
-            {
+            switch (tileType) {
+                #region Stage Build Blocks
+                #region Blanks and Decorative
                 // Blank space
                 case '.':
                     return new Tile(null, TileCollision.Passable);
+                #endregion
 
+                #region Solid and Platforms
+                // Impassable solid block
+                case '#':
+                    return LoadTile("slice_214", TileCollision.Impassable);
+
+                // Passable block
+                case 'T':
+                    return LoadTile("slice_246", TileCollision.Platform);
+
+                case '0':
+                    return LoadTile("slice_420", TileCollision.Passable);
+                #endregion
+                #endregion
+
+                #region Spawn points and Teleports
                 // Player 1 start point
                 case '1':
                     return LoadStartTile(x, y);
 
-                // Impassable block
-                case '#':
-                    return LoadTile("slice_214", TileCollision.Impassable);
-
+                // Enemy A spawn point
                 case 'A':
                     return LoadEnemyTile(x, y, "EnemyA");
-
+                
                 // Exit
                 case 'X':
                     return LoadExitTile(x, y);
+                #endregion
 
                 // Unknown tile type character
                 default:
