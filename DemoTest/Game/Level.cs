@@ -103,6 +103,10 @@ namespace DemoTest
                 // Blank space
                 case '.':
                     return new Tile(null, TileCollision.Passable);
+
+                // Decorative for 'T'
+                case '0':
+                    return LoadTile("slice_420", TileCollision.Passable);
                 #endregion
 
                 #region Solid and Platforms
@@ -110,12 +114,9 @@ namespace DemoTest
                 case '#':
                     return LoadTile("slice_214", TileCollision.Impassable);
 
-                // Passable block
+                // Top passable block
                 case 'T':
                     return LoadTile("slice_246", TileCollision.Platform);
-
-                case '0':
-                    return LoadTile("slice_420", TileCollision.Passable);
                 #endregion
                 #endregion
 
@@ -270,7 +271,7 @@ namespace DemoTest
                 {
                     if (enemy.isAlive)
                     {
-                        if (player.Invulnerable != true)
+                        if (!player.Invulnerable && !player.isAttacking)
                         {
                             dmg = enemy.str - player.vit;
                             if (dmg <= 0)
@@ -280,7 +281,7 @@ namespace DemoTest
                                 player.hitPoints = 0;
                             player.Invulnerable = true;
                         }
-                    }                    
+                    }
                 }
 
                 if (enemy.isAlive && enemy.BoundingRectangle.Intersects(Player.MeleeRectangle))

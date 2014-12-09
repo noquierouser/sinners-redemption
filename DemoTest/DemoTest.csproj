@@ -98,6 +98,9 @@
     <Content Include="Content\Tiles\slice_420.png" />
     <Content Include="Content\Tiles\slice_421.png" />
     <Content Include="Content\Tiles\slice_422.png" />
+    <Content Include="Content\Tiles\slice_64.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Icon.ico" />
   </ItemGroup>
   <ItemGroup />

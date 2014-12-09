@@ -205,7 +205,9 @@ namespace DemoTest
             if (!Global.isPaused)
             {
                 GetInput(keyboardState, gamePadState);
+                
                 DoAttack(gameTime);
+                
 
                 // Invulnerability time
                 if (gameTime.TotalGameTime.TotalMilliseconds >= invulTime)
@@ -290,6 +292,20 @@ namespace DemoTest
                 keyboardState.IsKeyDown(Keys.Up) ||
                 keyboardState.IsKeyDown(Keys.W);
 
+            
+            //isAttacking = keyboardState.IsKeyDown(Keys.F);
+
+            if (previousKeyboardState.IsKeyUp(Keys.F) && keyboardState.IsKeyDown(Keys.F))
+            {
+                if (AttackTime != MaxAttackTime)
+                {
+                    isAttacking = true;
+                    AttackTime = MaxAttackTime;      
+               
+                }                
+            }
+                    
+            /*
             // Check attack
             if (previousKeyboardState.IsKeyUp(Keys.F) && keyboardState.IsKeyDown(Keys.F))
             {
@@ -299,6 +315,7 @@ namespace DemoTest
                     AttackTime = MaxAttackTime;
                 }
             }
+            */
         }
 
         /// <summary>
@@ -377,23 +394,30 @@ namespace DemoTest
 
         private void DoAttack(GameTime gameTime)
         {
-            // If the player wants to attack
-            if (isAttacking)
+            if (isOnGround)
             {
-                // Begin or continue an attack
-                if (AttackTime > 0.0f)
+                // If the player wants to attack
+                if (isAttacking)
                 {
-                    AttackTime -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    // Begin or continue an attack
+                    if (AttackTime > 0.0f)
+                    {
+                        AttackTime -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                        velocity.X = 0;
+                        velocity.Y = 0;
+                        movement = 0.0f;
+                        isJumping = false;
+                    }
+                    else
+                    {
+                        isAttacking = false;
+                    }
                 }
                 else
                 {
-                    isAttacking = false;
+                    //Continues not attack or cancels an attack in progress
+                    AttackTime = 0.0f;
                 }
-            }
-            else
-            {
-                //Continues not attack or cancels an attack in progress
-                AttackTime = 0.0f;
             }
         }
 
