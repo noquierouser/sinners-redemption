@@ -85,6 +85,7 @@ namespace DemoTest
         // Input configuration
         private const float MoveStickScale = 1.0f;
         private const Buttons JumpButton = Buttons.A;
+        private const Buttons AttackButton = Buttons.X;
 
         /// <summary>
         /// Gets whether or not the player's feet are on the ground.
@@ -293,9 +294,11 @@ namespace DemoTest
                 keyboardState.IsKeyDown(Keys.W);
 
             
-            //isAttacking = keyboardState.IsKeyDown(Keys.F);
+            isAttacking = 
+                keyboardState.IsKeyDown(Keys.F) ||
+                gamePadState.IsButtonDown(AttackButton);
 
-            if (previousKeyboardState.IsKeyUp(Keys.F) && keyboardState.IsKeyDown(Keys.F))
+            if (isAttacking)
             {
                 if (AttackTime != MaxAttackTime)
                 {
