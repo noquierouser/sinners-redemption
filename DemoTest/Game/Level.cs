@@ -111,6 +111,10 @@ namespace DemoTest
                 case '#':
                     return LoadTile("slice_214", TileCollision.Impassable);
 
+                // Platform
+                case '_':
+                    return LoadTile("slice_64", TileCollision.Platform);
+
                 case 'A':
                     return LoadEnemyTile(x, y, "EnemyA");
 
@@ -255,7 +259,7 @@ namespace DemoTest
                 {
                     if (enemy.isAlive)
                     {
-                        if (player.Invulnerable != true)
+                        if (!player.Invulnerable && !player.isAttacking)
                         {
                             dmg = enemy.str - player.vit;
                             if (dmg <= 0)
@@ -265,7 +269,7 @@ namespace DemoTest
                                 player.hitPoints = 0;
                             player.Invulnerable = true;
                         }
-                    }                    
+                    }
                 }
 
                 if (enemy.isAlive && enemy.BoundingRectangle.Intersects(Player.MeleeRectangle))
