@@ -99,24 +99,39 @@ namespace DemoTest
         {
             switch (tileType) {
                 #region Stage Build Blocks
-                #region Blanks and Decorative
                 // Blank space
                 case '.':
                     return new Tile(null, TileCollision.Passable);
 
-                // Decorative for 'T'
-                case '0':
-                    return LoadTile("slice_420", TileCollision.Passable);
+                // Ground block
+                case '#':
+                    return LoadTile("scenery/hard_ground", TileCollision.Impassable);
+
+                #region Building
+                case 'O':
+                    return LoadTile("building/01_top_walk", TileCollision.Platform);
+
+                case 'T':
+                    return LoadTile("building/02_sustain", TileCollision.Passable);
+
+                case 'I':
+                    return LoadTile("building/03_middle", TileCollision.Passable);
+
+                case 'K':
+                    return LoadTile("building/04_from_ground", TileCollision.Passable);
+
+                case 'L':
+                    return LoadTile("building/05_bottom", TileCollision.Passable);
                 #endregion
 
-                #region Solid and Platforms
-                // Impassable solid block
-                case '#':
-                    return LoadTile("slice_214", TileCollision.Impassable);
+                #region Stage elements
+                // Hard blocks
+                case 'H':
+                    return LoadTile("scenery/hard_crate", TileCollision.Impassable);
 
-                // Top passable block
-                case 'T':
-                    return LoadTile("slice_246", TileCollision.Platform);
+                // Boxes
+                case 'C':
+                    return LoadTile("scenery/soft_crate", TileCollision.Platform);
                 #endregion
                 #endregion
 

@@ -91,22 +91,28 @@
     <Content Include="Content\Sprites\Player\stand.fw.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Tiles\slice_214.png">
+    <Content Include="Content\Tiles\building\01_top_walk.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Tiles\slice_246.png">
+    <Content Include="Content\Tiles\building\02_sustain.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Tiles\slice_420.png">
+    <Content Include="Content\Tiles\building\03_middle.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Tiles\slice_421.png">
+    <Content Include="Content\Tiles\building\04_from_ground.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Tiles\slice_422.png">
+    <Content Include="Content\Tiles\building\05_bottom.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Tiles\slice_64.png">
+    <Content Include="Content\Tiles\scenery\hard_crate.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Tiles\scenery\hard_ground.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Tiles\scenery\soft_crate.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Icon.ico" />
