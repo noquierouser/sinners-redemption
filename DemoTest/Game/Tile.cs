@@ -17,6 +17,9 @@ namespace DemoTest
         /// </summary>
         Impassable = 1,
 
+        /// <summary>
+        /// A platform tile can be passed from underneath.
+        /// </summary>
         Platform = 2
     }
 

@@ -209,7 +209,8 @@ namespace DemoTest
             Player.Draw(gameTime, spriteBatch);
 
             foreach (Enemy enemy in enemies)
-                enemy.Draw(gameTime, spriteBatch);
+                if(enemy.isAlive || enemy.deathTime > 0)
+                    enemy.Draw(gameTime, spriteBatch);
 
             spriteBatch.End();
 
@@ -224,10 +225,8 @@ namespace DemoTest
             GameTime gameTime,
             KeyboardState keyboardState,
             GamePadState gamePadState)
-        {
-            
+        {            
             Player.Update(gameTime, keyboardState, gamePadState);
-
             UpdateEnemies(gameTime);
 
             if (Player.IsAlive &&
@@ -243,7 +242,7 @@ namespace DemoTest
             
         }
 
-        private void UpdateEnemies(GameTime gameTime)
+        public void UpdateEnemies(GameTime gameTime)
         {
             foreach (Enemy enemy in enemies)
             {
@@ -254,17 +253,32 @@ namespace DemoTest
                 // Touching an enemy depletes the player hitpoints
                 if (enemy.BoundingRectangle.Intersects(Player.BoundingRectangle))
                 {
-                    if (player.Invulnerable != true)
+                    if (enemy.isAlive)
                     {
-                        dmg = enemy.str - player.vit;
-                        if (dmg <= 0)
-                            dmg = 1;
-                        player.hitPoints = player.hitPoints - dmg;
-                        player.Invulnerable = true;
-                    }
-                    
+                        if (player.Invulnerable != true)
+                        {
+                            dmg = enemy.str - player.vit;
+                            if (dmg <= 0)
+                                dmg = 1;
+                            player.hitPoints = player.hitPoints - dmg;
+                            if (player.hitPoints < 0)
+                                player.hitPoints = 0;
+                            player.Invulnerable = true;
+                        }
+                    }                    
+                }
+
+                if (enemy.isAlive && enemy.BoundingRectangle.Intersects(Player.MeleeRectangle))
+                {
+                    if (Player.isAttacking)
+                        OnEnemyKilled(enemy, Player);
                 }
             }
+        }
+
+        private void OnEnemyKilled(Enemy enemy, Player killedBy)
+        {
+            enemy.OnKilled(killedBy);
         }
 
         private void DrawTiles(SpriteBatch spriteBatch)

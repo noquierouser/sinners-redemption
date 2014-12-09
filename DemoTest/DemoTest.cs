@@ -53,9 +53,7 @@ namespace DemoTest
             Components.Add(screenManager);
             Components.Add(new GamerServicesComponent(this));
 
-            //Activate first screens
-            screenManager.AddScreen(new BackgroundScreen(), null);
-            screenManager.AddScreen(new MainMenuScreenX(), null);
+            
         }
 
         /// <summary>
@@ -65,16 +63,25 @@ namespace DemoTest
         /// and initialize them as well.
         /// </summary>
         protected override void Initialize()
-        {
-            // TODO: Add your initialization logic here
+        {            
+            // Initialize global variables
             Global.isPaused = true;
             Global.newGame = true;
             Global.continueGame = false;
             Global.sound = 100;
             Global.music = 100;
+
+            // Get keyboard state and load data from files
             oldState = Keyboard.GetState();
             load.InitiateLoadOptions();
-            load.InitiateLoadPlayer();            
+            load.InitiateLoadPlayer();
+
+            // Activate background screen
+            screenManager.AddScreen(new BackgroundScreen(), null);
+
+            // Activate main menu screen
+            screenManager.AddScreen(new MainMenuScreenX(), null);
+            
             base.Initialize();
         }
 
@@ -89,7 +96,7 @@ namespace DemoTest
 
             hudFont = Content.Load<SpriteFont>("Fonts/Hud");
             gameFont = Content.Load<SpriteFont>("Fonts/gamefont");
-
+            
             LoadNextLevel();
             // TODO: use this.Content to load your game content here
         }
@@ -109,16 +116,28 @@ namespace DemoTest
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
-        {
+        {            
             if (!Global.isPaused)
             {
                 HandleInput();
                 // update our level, passing down the GameTime along with all of our input states
                 level.Update(gameTime, keyboardState, gamePadState);
-
-                // TODO: Add your update logic here
-                
             }
+
+            // If player dies
+            keyboardState = Keyboard.GetState();
+            if (!level.Player.IsAlive)
+            {
+                level.Player.Update(gameTime, keyboardState, gamePadState);
+                level.UpdateEnemies(gameTime);
+                Global.isPaused = true;
+                if (keyboardState.IsKeyDown(Keys.Space))
+                {
+                    ReloadCurrentLevel();
+                    Global.isPaused = false;
+                }
+            }
+
             base.Update(gameTime);
         }
 
@@ -159,13 +178,7 @@ namespace DemoTest
                 if (gamePadState.Buttons.Back == ButtonState.Pressed)
                     Exit();
 
-                if (!level.Player.IsAlive)
-                {
-                    if (keyboardState.IsKeyDown(Keys.Space))
-                    {
-                        ReloadCurrentLevel();
-                    }
-                }
+                
 
                 // If starting a new game
                 if (Global.newGame)

@@ -122,7 +122,7 @@ namespace DemoTest
                 stream.Close();
                 container.Dispose();
                 Global.sound = options.soundVolume;
-                Global.music = options.musicVolume;                
+                Global.music = options.musicVolume;
             }
         }
 
@@ -140,7 +140,7 @@ namespace DemoTest
                     dex = Global.dex,
                     vit = Global.vit,
                     position = Global.position,
-                    levelIndex = Global.levelIndex-1,
+                    levelIndex = Global.levelIndex,
                 };
                 IAsyncResult r = device.BeginOpenContainer(containerName, null, null);
                 result.AsyncWaitHandle.WaitOne();
@@ -153,6 +153,7 @@ namespace DemoTest
                 stream.Close();
                 container.Dispose();
                 result.AsyncWaitHandle.Close();
+                Global.saveExists = true;
             }
         }
 
@@ -177,7 +178,10 @@ namespace DemoTest
                 Global.vit = data.vit;
                 Global.position = data.position;
                 Global.levelIndex = data.levelIndex;
+                Global.saveExists = true;
             }
+            else
+                Global.saveExists = false;
         }
 
         #endregion

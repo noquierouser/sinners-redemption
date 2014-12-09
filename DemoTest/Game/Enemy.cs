@@ -66,7 +66,12 @@ namespace DemoTest
         // Animations
         private Animation runAnimation;
         private Animation idleAnimation;
+        private Animation deathAnimation;
         private AnimationPlayer sprite;
+
+        public bool isAlive { get; private set; }
+        private const float deathTimeMax = 1.0f;
+        public float deathTime = deathTimeMax;
 
         /// <summary>
         /// The direction this enemy is facing and moving along the X axis.
@@ -95,6 +100,7 @@ namespace DemoTest
         {
             this.level = level;
             this.position = position;
+            this.isAlive = true;
             LoadContent(spriteSet);
             if (spriteSet == "EnemyA")
             {
@@ -119,6 +125,7 @@ namespace DemoTest
             spriteSet = "Sprites/Enemies/" + spriteSet + "/";
             runAnimation = new Animation(Level.Content.Load<Texture2D>(spriteSet + "Run"), 0.1f, true);
             idleAnimation = new Animation(Level.Content.Load<Texture2D>(spriteSet + "Idle"), 0.15f, true);
+            deathAnimation = new Animation(Level.Content.Load<Texture2D>(spriteSet + "Die"), 0.15f, true);
             sprite.PlayAnimation(idleAnimation);
 
             // Calculate bounds within texture size.
@@ -136,6 +143,9 @@ namespace DemoTest
         public void Update(GameTime gameTime)
         {
             float elapsed = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            if (!isAlive)
+                deathTime -= (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             // Calculate tile position based on the side we are walking towards.
             float posX = Position.X + localBounds.Width / 2 * (int)direction;
@@ -174,25 +184,32 @@ namespace DemoTest
         /// </summary>
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            // Stop running when the game is paused or before turning around.
-            if (!Level.Player.IsAlive ||
-                //Level.ReachedExit ||
-                //Level.TimeRemaining == TimeSpan.Zero ||                
-                waitTime > 0)
-            {
-                if (!Global.isPaused)
-                    sprite.PlayAnimation(idleAnimation);
-                
-            }
+            if (Global.isPaused && level.Player.IsAlive)
+                sprite.PlayAnimation(idleAnimation);
             else
             {
-               sprite.PlayAnimation(runAnimation);
-            }
+                if (deathTime < deathTimeMax)
+                    sprite.PlayAnimation(deathAnimation);
+                // Stop running when the game is paused or before turning around.
+                else if (waitTime > 0)
+                {
+                    sprite.PlayAnimation(idleAnimation);
 
+                }
+                else
+                {
+                    sprite.PlayAnimation(runAnimation);
+                }
+            }
 
             // Draw facing the way the enemy is moving.
             SpriteEffects flip = direction > 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
             sprite.Draw(gameTime, spriteBatch, Position, flip);
+        }
+
+        public void OnKilled(Player killedBy)
+        {
+            isAlive = false;            
         }
     }
 }

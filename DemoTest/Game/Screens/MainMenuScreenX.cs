@@ -65,10 +65,21 @@ namespace DemoTest.Game.Screens
 
         void ContinueGameMenuEntrySelected(object sender, PlayerIndexEventArgs e)
         {
-            LoadingScreen.Load(ScreenManager, true, e.PlayerIndex, null);
-            Global.isPaused = false;
-            Global.newGame = false;
-            Global.continueGame = true;
+            if (Global.saveExists)
+            {
+                LoadingScreen.Load(ScreenManager, true, e.PlayerIndex, null);
+                Global.isPaused = false;
+                Global.newGame = false;
+                Global.continueGame = true;
+            }
+            else
+            {
+                const string message = "Hola, no hay datos, toplel";
+
+                MessageBoxScreen noData = new MessageBoxScreen(message, false);
+
+                ScreenManager.AddScreen(noData, null);
+            }
         }
 
 

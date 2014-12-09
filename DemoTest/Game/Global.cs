@@ -11,6 +11,7 @@ namespace DemoTest
         public static bool isPaused {get; set;}
         public static bool newGame { get; set; }
         public static bool continueGame { get; set; }
+        public static bool saveExists { get; set; }
         public static int sound { get; set; }
         public static int music { get; set; }
 
@@ -21,6 +22,6 @@ namespace DemoTest
         public static int dex;
         public static int vit;
         public static int levelIndex;
-        public static Vector2 position;        
+        public static Vector2 position;
     }
 }

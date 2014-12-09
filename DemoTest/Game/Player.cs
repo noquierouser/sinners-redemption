@@ -9,10 +9,13 @@ namespace DemoTest
 {
     class Player
     {
+        KeyboardState previousKeyboardState = Keyboard.GetState();
+
         private Animation idleAnimation;
         private Animation runAnimation;
         private Animation jumpAnimation;
         private Animation dyingAnimation;
+        private Animation attackAnimation;
         private SpriteEffects flip = SpriteEffects.None;
         private AnimationPlayer sprite;       
 
@@ -102,6 +105,11 @@ namespace DemoTest
         private bool wasJumping;
         private float jumpTime;
 
+        // Attacking state
+        public bool isAttacking;
+        const float MaxAttackTime = 0.44f;
+        public float AttackTime;
+
         private Rectangle localBounds;
         /// <summary>
         /// Gets a rectangle which bounds this player in world space.
@@ -114,6 +122,30 @@ namespace DemoTest
                 int top = (int)Math.Round(Position.Y - sprite.Origin.Y) + localBounds.Y;
 
                 return new Rectangle(left, top, localBounds.Width, localBounds.Height);
+            }
+        }
+
+        /// <summary>
+        /// Gets a rectangle for the melee attack.
+        /// </summary>
+        public Rectangle MeleeRectangle
+        {
+            get
+            {
+                int left = (int)Math.Round(Position.X - sprite.Origin.X) + localBounds.X;
+                int top = (int)Math.Round(Position.Y - sprite.Origin.Y) + localBounds.Y;
+                if (flip == SpriteEffects.FlipHorizontally)
+                    return new Rectangle(
+                        (left + localBounds.Width),
+                        top,
+                        localBounds.Width,
+                        localBounds.Height);
+                else
+                    return new Rectangle(
+                        (left - localBounds.Width),
+                        top,
+                        localBounds.Width,
+                        localBounds.Height);
             }
         }
 
@@ -136,6 +168,7 @@ namespace DemoTest
             runAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/Player/run.fw"), 0.1f, true);
             jumpAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/Player/jump.fw"), 0.1f, false);
             dyingAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/Player/dying.fw"), 0.1f, false);
+            attackAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/Player/attack.fw"), 0.1f, false);
 
             // Calculate bounds within texture size.            
             //int width = (int)(sprite.Width * 0.4);
@@ -169,37 +202,51 @@ namespace DemoTest
             KeyboardState keyboardState,
             GamePadState gamePadState)
         {
-            GetInput(keyboardState, gamePadState);
+            if (!Global.isPaused)
+            {
+                GetInput(keyboardState, gamePadState);
+                DoAttack(gameTime);
+
+                // Invulnerability time
+                if (gameTime.TotalGameTime.TotalMilliseconds >= invulTime)
+                {
+                    invulnerable = false;
+                    invulTime = gameTime.TotalGameTime.TotalMilliseconds + 2000;
+                    visibility = true;
+                }
+
+                if (invulnerable == true)
+                {
+                    if (gameTime.TotalGameTime.TotalMilliseconds >= blinkTime)
+                    {
+                        visibility = !visibility;
+
+                        blinkTime = gameTime.TotalGameTime.TotalMilliseconds + 50;
+                    }
+                }
+            }
+
+            if (Global.isPaused)
+                visibility = true;
 
             ApplyPhysics(gameTime);
 
-            // Invulnerability time
-            if (gameTime.TotalGameTime.TotalMilliseconds >= invulTime)
-            {
-                invulnerable = false;
-                invulTime = gameTime.TotalGameTime.TotalMilliseconds + 2000;
-                visibility = true;
-            }
-
-            if (invulnerable == true)
-            {
-                if (gameTime.TotalGameTime.TotalMilliseconds >= blinkTime)
-                {
-                    visibility = !visibility;
-
-                    blinkTime = gameTime.TotalGameTime.TotalMilliseconds + 50;
-                }
-            }
-
             if (IsAlive && IsOnGround)
             {
-                if (Math.Abs(Velocity.X) - 0.02f > 0)
+                if (isAttacking)
                 {
-                    sprite.PlayAnimation(runAnimation);
+                    sprite.PlayAnimation(attackAnimation);
                 }
                 else
                 {
-                    sprite.PlayAnimation(idleAnimation);
+                    if (Math.Abs(Velocity.X) - 0.02f > 0)
+                    {
+                        sprite.PlayAnimation(runAnimation);
+                    }
+                    else
+                    {
+                        sprite.PlayAnimation(idleAnimation);
+                    }
                 }
             }
 
@@ -242,6 +289,16 @@ namespace DemoTest
                 keyboardState.IsKeyDown(Keys.Space) ||
                 keyboardState.IsKeyDown(Keys.Up) ||
                 keyboardState.IsKeyDown(Keys.W);
+
+            // Check attack
+            if (previousKeyboardState.IsKeyUp(Keys.F) && keyboardState.IsKeyDown(Keys.F))
+            {
+                if (AttackTime != MaxAttackTime)
+                {
+                    isAttacking = true;
+                    AttackTime = MaxAttackTime;
+                }
+            }
         }
 
         /// <summary>
@@ -316,6 +373,28 @@ namespace DemoTest
             wasJumping = isJumping;
 
             return velocityY;
+        }
+
+        private void DoAttack(GameTime gameTime)
+        {
+            // If the player wants to attack
+            if (isAttacking)
+            {
+                // Begin or continue an attack
+                if (AttackTime > 0.0f)
+                {
+                    AttackTime -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                }
+                else
+                {
+                    isAttacking = false;
+                }
+            }
+            else
+            {
+                //Continues not attack or cancels an attack in progress
+                AttackTime = 0.0f;
+            }
         }
 
 
