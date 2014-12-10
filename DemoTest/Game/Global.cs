@@ -12,8 +12,8 @@ namespace DemoTest
         public static bool newGame { get; set; }
         public static bool continueGame { get; set; }
         public static bool saveExists { get; set; }
-        public static int sound { get; set; }
-        public static int music { get; set; }
+        public static float sound { get; set; }
+        public static float music { get; set; }
 
         // Status of the game for save data
         public static int hp;
@@ -23,5 +23,7 @@ namespace DemoTest
         public static int vit;
         public static int levelIndex;
         public static Vector2 position;
+        public static Vector2[] enemies;
+        public static bool[] aliveEnemy;
     }
 }

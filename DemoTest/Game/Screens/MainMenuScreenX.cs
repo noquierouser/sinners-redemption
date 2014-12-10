@@ -74,7 +74,7 @@ namespace DemoTest.Game.Screens
             }
             else
             {
-                const string message = "Hola, no hay datos, toplel";
+                const string message = "No savedata found. Start a new game.";
 
                 MessageBoxScreen noData = new MessageBoxScreen(message, false);
 

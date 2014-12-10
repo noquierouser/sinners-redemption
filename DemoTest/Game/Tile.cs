@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DemoTest
 {
-    enum TileCollision
+    public enum TileCollision
     {
         /// <summary>
         /// A passable tile is one which does not hinder player motion at all.
@@ -23,7 +23,7 @@ namespace DemoTest
         Platform = 2
     }
 
-    struct Tile
+    public struct Tile
     {
         public Texture2D Texture;
         public TileCollision Collision;

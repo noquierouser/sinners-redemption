@@ -165,10 +165,8 @@ namespace DemoTest.Game.ScreenManagers
         public bool IsMenuSelect(PlayerIndex? controllingPlayer,
                                  out PlayerIndex playerIndex)
         {
-            return IsNewKeyPress(Keys.Space, controllingPlayer, out playerIndex) ||
-                   IsNewKeyPress(Keys.Enter, controllingPlayer, out playerIndex) ||
-                   IsNewButtonPress(Buttons.A, controllingPlayer, out playerIndex) ||
-                   IsNewButtonPress(Buttons.Start, controllingPlayer, out playerIndex);
+            return IsNewKeyPress(Keys.Enter, controllingPlayer, out playerIndex) ||
+                   IsNewButtonPress(Buttons.A, controllingPlayer, out playerIndex);
         }
 
 
