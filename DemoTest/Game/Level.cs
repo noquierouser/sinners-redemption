@@ -11,9 +11,12 @@ using Microsoft.Xna.Framework.GamerServices;
 
 namespace DemoTest
 {
-    class Level
+    public class Level
     {
+        public List<Message> messages;
+
         private Tile[,] tiles;
+        TimeSpan MaxAgeMessage = new TimeSpan(0, 0, 0, 0, 500);
 
         private Layer[] layers;
         private const int EntityLayer = 2;
@@ -45,7 +48,7 @@ namespace DemoTest
         public float cameraPositionX;
         public float cameraPositionY;
 
-        private List<Enemy> enemies = new List<Enemy>();
+        public List<Enemy> enemies = new List<Enemy>();
         
 
         public Level(IServiceProvider serviceProvider, Stream fileStream, int levelIndex)
@@ -55,10 +58,9 @@ namespace DemoTest
 
             LoadTiles(fileStream);
 
-            layers = new Layer[3];
-            layers[0] = new Layer(Content, "Backgrounds/Layer0", 0.2f);
-            layers[1] = new Layer(Content, "Backgrounds/Layer1", 0.5f);
-            layers[2] = new Layer(Content, "Backgrounds/Layer2", 0.8f);
+            messages = new List<Message>();
+            layers = new Layer[1];
+            layers[0] = new Layer(Content, "Backgrounds/Layer4", 0.6f);
         }
 
         private void LoadTiles(Stream fileStream)
@@ -143,6 +145,12 @@ namespace DemoTest
                 // Enemy A spawn point
                 case 'A':
                     return LoadEnemyTile(x, y, "EnemyA");
+
+                case 'B':
+                    return LoadEnemyTile(x, y, "EnemyB");
+
+                case 'D':
+                    return LoadEnemyTile(x, y, "EnemyC");
                 
                 // Exit
                 case 'X':
@@ -225,11 +233,10 @@ namespace DemoTest
             return new Rectangle(x * Tile.Width, y * Tile.Height, Tile.Width, Tile.Height);
         }
 
-        public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+        public void Draw(GameTime gameTime, SpriteBatch spriteBatch, SpriteFont dmgFont)
         {
             spriteBatch.Begin();
-            for (int i = 0; i <= EntityLayer; ++i)
-                layers[i].Draw(spriteBatch, cameraPositionX, cameraPositionY);
+            layers[0].Draw(spriteBatch, cameraPositionX, cameraPositionY);
             spriteBatch.End();
 
             ScrollCamera(spriteBatch.GraphicsDevice.Viewport);
@@ -243,6 +250,11 @@ namespace DemoTest
                 if(enemy.isAlive || enemy.deathTime > 0)
                     enemy.Draw(gameTime, spriteBatch);
 
+            foreach (var message in messages)
+            {
+                spriteBatch.DrawString(dmgFont, message.Text, message.Position, message.MessageColor, 0.0f, new Vector2(), 0.5f, SpriteEffects.None, 0);
+            }
+
             spriteBatch.End();
 
             spriteBatch.Begin();
@@ -250,6 +262,7 @@ namespace DemoTest
                 layers[i].Draw(spriteBatch, cameraPositionX, cameraPositionY);
             spriteBatch.End();
 
+            
         }
 
         public void Update(
@@ -258,7 +271,7 @@ namespace DemoTest
             GamePadState gamePadState)
         {            
             Player.Update(gameTime, keyboardState, gamePadState);
-            UpdateEnemies(gameTime);
+            UpdateEnemies(gameTime);            
 
             if (Player.IsAlive &&
                    Player.IsOnGround &&
@@ -268,8 +281,19 @@ namespace DemoTest
             }
 
             // Falling off the bottom of the level kills the player.
-            if (Player.BoundingRectangle.Top >= Height * Tile.Height)
+            if (Player.BoundingRectangle.Top >= Height * Tile.Height && Player.IsAlive)
+            {
                 OnPlayerKilled();
+            }
+
+            foreach (var message in messages)
+            {
+                message.Position.Y = message.Position.Y - 1;
+            }
+
+            while (messages.Count > 0 &&
+                   messages[0].Appeared + MaxAgeMessage < gameTime.TotalGameTime)
+                messages.RemoveAt(0);
             
         }
 
@@ -278,7 +302,11 @@ namespace DemoTest
             foreach (Enemy enemy in enemies)
             {
                 enemy.Update(gameTime);
-                int dmg;
+                int playerDmg;
+                int enemyDmg;
+
+                Vector2 pos = player.position;
+                pos.Y = pos.Y - 90;
 
                 // Enemy damages player
                 // Touching an enemy depletes the player hitpoints
@@ -288,12 +316,21 @@ namespace DemoTest
                     {
                         if (!player.Invulnerable && !player.isAttacking)
                         {
-                            dmg = enemy.str - player.vit;
-                            if (dmg <= 0)
-                                dmg = 1;
-                            player.hitPoints = player.hitPoints - dmg;
+                            enemyDmg = enemy.str - player.vit;
+                            if (enemyDmg <= 0)
+                                enemyDmg = 1;
+                            player.hitPoints = player.hitPoints - enemyDmg;
                             if (player.hitPoints < 0)
                                 player.hitPoints = 0;
+
+                            messages.Add(new Message() 
+                            { 
+                                Text = enemyDmg.ToString(),
+                                Appeared = gameTime.TotalGameTime,
+                                Position = pos,
+                                MessageColor = Color.Red
+                            });
+
                             player.Invulnerable = true;
                         }
                     }
@@ -301,15 +338,32 @@ namespace DemoTest
 
                 if (enemy.isAlive && enemy.BoundingRectangle.Intersects(Player.MeleeRectangle))
                 {
-                    if (Player.isAttacking)
-                        OnEnemyKilled(enemy, Player);
+                    if (Player.isAttacking && !enemy.Invulnerable)
+                    {
+                        playerDmg = player.str - enemy.vit;
+                        if (playerDmg <= 0)
+                            playerDmg = 0;
+                        enemy.hitPoints = enemy.hitPoints - playerDmg;
+                        if (enemy.hitPoints < 0)
+                            enemy.hitPoints = 0;
+
+                        messages.Add(new Message()
+                        {
+                            Text = playerDmg.ToString(),
+                            Appeared = gameTime.TotalGameTime,
+                            Position = pos,
+                            MessageColor = Color.White
+                        });
+
+                        enemy.Invulnerable = true;
+                    }
                 }
             }
         }
 
         private void OnEnemyKilled(Enemy enemy, Player killedBy)
         {
-            enemy.OnKilled(killedBy);
+            enemy.OnKilled();
         }
 
         private void DrawTiles(SpriteBatch spriteBatch)
