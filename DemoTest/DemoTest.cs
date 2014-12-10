@@ -4,7 +4,6 @@ using System.IO;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Storage;
@@ -27,15 +26,9 @@ namespace DemoTest
         Vector2 baseScreenSize = new Vector2(800, 600);
 
         SaveLoadData load = new SaveLoadData();
-        Song music;
-        Song music1;
-        Song music2;
-        Song music3;
-
+         
         private SpriteFont hudFont;
-        public SpriteFont gameFont;
-        private Vector2[] enemies = new Vector2[100];
-        private bool[] aliveEnemies = new bool[100];
+        private SpriteFont gameFont;
 
         private int levelIndex = -1;        
 
@@ -75,19 +68,19 @@ namespace DemoTest
             Global.isPaused = true;
             Global.newGame = true;
             Global.continueGame = false;
-            Global.sound = 10;
-            Global.music = 10;
+            Global.sound = 100;
+            Global.music = 100;
 
             // Get keyboard state and load data from files
             oldState = Keyboard.GetState();
             load.InitiateLoadOptions();
             load.InitiateLoadPlayer();
 
-            // Activate background screen            
+            // Activate background screen
             screenManager.AddScreen(new BackgroundScreen(), null);
 
             // Activate main menu screen
-            screenManager.AddScreen(new MainMenuScreenX(), null);            
+            screenManager.AddScreen(new MainMenuScreenX(), null);
             
             base.Initialize();
         }
@@ -103,9 +96,7 @@ namespace DemoTest
 
             hudFont = Content.Load<SpriteFont>("Fonts/Hud");
             gameFont = Content.Load<SpriteFont>("Fonts/gamefont");
-            music = Content.Load<Song>("Music/level1");
-
-            MediaPlayer.Play(music);
+            
             LoadNextLevel();
             // TODO: use this.Content to load your game content here
         }
@@ -125,9 +116,7 @@ namespace DemoTest
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
-        {
-            MediaPlayer.Volume = Global.music / 10;
-
+        {            
             if (!Global.isPaused)
             {
                 HandleInput();
@@ -144,13 +133,7 @@ namespace DemoTest
                 Global.isPaused = true;
                 if (keyboardState.IsKeyDown(Keys.Space))
                 {
-                    Global.str = level.Player.str;
-                    Global.dex = level.Player.dex;
-                    Global.vit = level.Player.vit;
                     ReloadCurrentLevel();
-                    level.Player.str = Global.str;
-                    level.Player.dex = Global.dex;
-                    level.Player.vit = Global.vit;
                     Global.isPaused = false;
                 }
             }
@@ -175,13 +158,6 @@ namespace DemoTest
                         if (Global.isPaused == false)
                         {
                             Global.isPaused = true;
-                            int i = 0;
-                            foreach (var enemy in level.enemies)
-                            {
-                                enemies[i] = enemy.Position;
-                                aliveEnemies[i] = enemy.isAlive;
-                                i++;
-                            }
                             screenManager.AddScreen
                                 (new PauseMenuScreen
                                     (   level.Player.hitPoints,
@@ -190,9 +166,7 @@ namespace DemoTest
                                         level.Player.dex,
                                         level.Player.vit,
                                         level.Player.Position,
-                                        levelIndex,
-                                        enemies,
-                                        aliveEnemies), null);
+                                        levelIndex), null);
                         }
                     }
                 }
@@ -224,33 +198,13 @@ namespace DemoTest
                     level.Player.str = Global.str;
                     level.Player.dex = Global.dex;
                     level.Player.vit = Global.vit;
-                    level.Player.Position = Global.position;
-                    int i = 0;
-                    foreach (var enemy in level.enemies)
-                    {
-                        enemy.Position = Global.enemies[i];
-                        enemy.isAlive = Global.aliveEnemy[i];
-                        i++;
-                    }
+                    level.Player.Position = Global.position;                    
                     Global.continueGame = false;
                 }
 
                 // Level finished, initiate new level
                 if (level.ReachedExit)
-                {
-                    Global.hp = level.Player.hitPoints;
-                    Global.str = level.Player.str;
-                    Global.dex = level.Player.dex;
-                    Global.vit = level.Player.vit;
                     LoadNextLevel();
-                    level.Player.hitPoints = Global.hp;
-                    level.Player.str = Global.str;
-                    level.Player.dex = Global.dex;
-                    level.Player.vit = Global.vit;
-                    level.Player.str = level.Player.str + 5;
-                    level.Player.dex = level.Player.dex + 5;
-                    level.Player.vit = level.Player.vit + 5;
-                }
 
                 oldState = keyboardState;
             }
@@ -293,7 +247,7 @@ namespace DemoTest
 
             // TODO: Add your drawing code here            
             
-            level.Draw(gameTime, spriteBatch, gameFont);
+            level.Draw(gameTime, spriteBatch);
             DrawHud();
             
             base.Draw(gameTime);
@@ -310,12 +264,10 @@ namespace DemoTest
             
             DrawShadowedString(hudFont, "Player Position X: " + level.Player.Position.X.ToString(), hudLocation + new Vector2(0.0f, 1f * 1.2f), Color.Yellow);
             DrawShadowedString(hudFont, "Player Position Y: " + level.Player.Position.Y.ToString(), hudLocation + new Vector2(0.0f, 15f * 1.2f), Color.Yellow);
-            DrawShadowedString(hudFont, "Attacking: " + level.Player.isAttacking.ToString(), hudLocation + new Vector2(0.0f, 30f * 1.2f), Color.Yellow);
-            DrawShadowedString(hudFont, "HP: " + level.Player.hitPoints, hudLocation + new Vector2(0.0f, 45f * 1.2f), Color.Yellow);
-            DrawShadowedString(hudFont, "Strenght: " + level.Player.str, hudLocation + new Vector2(0.0f, 60f * 1.2f), Color.Yellow);
-            DrawShadowedString(hudFont, "Dexterity: " + level.Player.dex, hudLocation + new Vector2(0.0f, 75f * 1.2f), Color.Yellow);
-            DrawShadowedString(hudFont, "Vitality: " + level.Player.vit, hudLocation + new Vector2(0.0f, 90f * 1.2f), Color.Yellow);
-
+            DrawShadowedString(hudFont, "Camera Position X: " + level.cameraPositionX.ToString(), hudLocation + new Vector2(0.0f, 30f * 1.2f), Color.Yellow);
+            DrawShadowedString(hudFont, "Camera Position Y: " + level.cameraPositionY.ToString(), hudLocation + new Vector2(0.0f, 45f * 1.2f), Color.Yellow);
+            DrawShadowedString(hudFont, "Alive: " + level.Player.IsAlive.ToString(), hudLocation + new Vector2(0.0f, 60f * 1.2f), Color.Yellow);
+            DrawShadowedString(hudFont, "HP: " + level.Player.hitPoints, hudLocation + new Vector2(0.0f, 75f * 1.2f), Color.Yellow);
             
             spriteBatch.End();
         }

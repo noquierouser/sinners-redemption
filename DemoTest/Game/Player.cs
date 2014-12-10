@@ -7,26 +7,18 @@ using Microsoft.Xna.Framework.Input.Touch;
 
 namespace DemoTest
 {
-    public class Player
+    class Player
     {
         KeyboardState previousKeyboardState = Keyboard.GetState();
-        GamePadState previousGamePadState = GamePad.GetState(PlayerIndex.One);
 
-        // Animations
         private Animation idleAnimation;
         private Animation runAnimation;
         private Animation jumpAnimation;
         private Animation dyingAnimation;
         private Animation attackAnimation;
         private SpriteEffects flip = SpriteEffects.None;
-        private AnimationPlayer sprite;
+        private AnimationPlayer sprite;       
 
-        // Sounds
-        private SoundEffect killedSound;
-        private SoundEffect jumpSound;
-        private SoundEffect attackSound;
-
-        // Stats
         public int hitPoints;
         public int maxHitPoints = 100;
         public int str = 0;
@@ -44,7 +36,7 @@ namespace DemoTest
             get { return position; }
             set { position = value; }
         }
-        public Vector2 position;
+        Vector2 position;
 
         private float previousBottom;
 
@@ -93,7 +85,6 @@ namespace DemoTest
         // Input configuration
         private const float MoveStickScale = 1.0f;
         private const Buttons JumpButton = Buttons.A;
-        private const Buttons AttackButton = Buttons.X;
 
         /// <summary>
         /// Gets whether or not the player's feet are on the ground.
@@ -116,8 +107,7 @@ namespace DemoTest
 
         // Attacking state
         public bool isAttacking;
-        public bool isAttackSound;
-        const float MaxAttackTime = 0.35f;
+        const float MaxAttackTime = 0.44f;
         public float AttackTime;
 
         private Rectangle localBounds;
@@ -129,7 +119,7 @@ namespace DemoTest
             get
             {
                 int left = (int)Math.Round(Position.X - sprite.Origin.X) + localBounds.X;
-                int top = (int)Math.Round(Position.Y - sprite.Origin.Y) + localBounds.Y;                
+                int top = (int)Math.Round(Position.Y - sprite.Origin.Y) + localBounds.Y;
 
                 return new Rectangle(left, top, localBounds.Width, localBounds.Height);
             }
@@ -146,15 +136,15 @@ namespace DemoTest
                 int top = (int)Math.Round(Position.Y - sprite.Origin.Y) + localBounds.Y;
                 if (flip == SpriteEffects.FlipHorizontally)
                     return new Rectangle(
-                        (left + localBounds.Width - 50),
+                        (left + localBounds.Width),
                         top,
-                        localBounds.Width + 50,
+                        localBounds.Width,
                         localBounds.Height);
                 else
                     return new Rectangle(
                         (left - localBounds.Width),
                         top,
-                        localBounds.Width + 50,
+                        localBounds.Width,
                         localBounds.Height);
             }
         }
@@ -166,9 +156,6 @@ namespace DemoTest
             LoadContent();
 
             hitPoints = maxHitPoints;
-            str = 1;
-            dex = 0;
-            vit = 0;
             Reset(position);
         }
 
@@ -183,15 +170,16 @@ namespace DemoTest
             dyingAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/Player/dying.fw"), 0.1f, false);
             attackAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/Player/attack.fw"), 0.1f, false);
 
+            // Calculate bounds within texture size.            
+            //int width = (int)(sprite.Width * 0.4);
+            //int left = (sprite.Width - width) / 2;
+            //int height = (int)(sprite.Height * 0.8);
+            //int top = sprite.Height - height;
             int width = (int)(idleAnimation.FrameWidth * 0.4);
             int left = (idleAnimation.FrameWidth - width) / 2;
             int height = (int)(idleAnimation.FrameWidth * 0.8);
             int top = idleAnimation.FrameHeight - height;
             localBounds = new Rectangle(left, top, width, height);
-
-            jumpSound = Level.Content.Load<SoundEffect>("Sounds/Jump");
-            killedSound = Level.Content.Load<SoundEffect>("Sounds/death");
-            attackSound = Level.Content.Load<SoundEffect>("Sounds/attack");
         }
 
         /// <summary>
@@ -243,8 +231,7 @@ namespace DemoTest
             if (Global.isPaused)
                 visibility = true;
 
-            if (isAlive)
-                ApplyPhysics(gameTime);
+            ApplyPhysics(gameTime);
 
             if (IsAlive && IsOnGround)
             {
@@ -265,7 +252,7 @@ namespace DemoTest
                 }
             }
 
-            if (hitPoints == 0 && isAlive)
+            if (hitPoints == 0)
                 OnKilled();
 
             // Clear input.
@@ -305,22 +292,30 @@ namespace DemoTest
                 keyboardState.IsKeyDown(Keys.Up) ||
                 keyboardState.IsKeyDown(Keys.W);
 
-            // var newState = Keyboard.GetState();
-            if ((keyboardState.IsKeyDown(Keys.F) && !previousKeyboardState.IsKeyDown(Keys.F)) ||
-                 gamePadState.IsButtonDown(Buttons.X) && !previousGamePadState.IsButtonDown(Buttons.X))
+            
+            //isAttacking = keyboardState.IsKeyDown(Keys.F);
+
+            if (previousKeyboardState.IsKeyUp(Keys.F) && keyboardState.IsKeyDown(Keys.F))
             {
-                if (isOnGround)
+                if (AttackTime != MaxAttackTime)
                 {
+                    isAttacking = true;
+                    AttackTime = MaxAttackTime;      
+               
+                }                
+            }
                     
-                    if (AttackTime != MaxAttackTime)
-                    {
-                        isAttacking = true;
-                        AttackTime = MaxAttackTime;                        
-                    }
+            /*
+            // Check attack
+            if (previousKeyboardState.IsKeyUp(Keys.F) && keyboardState.IsKeyDown(Keys.F))
+            {
+                if (AttackTime != MaxAttackTime)
+                {
+                    isAttacking = true;
+                    AttackTime = MaxAttackTime;
                 }
             }
-            previousGamePadState = gamePadState;
-            previousKeyboardState = keyboardState;
+            */
         }
 
         /// <summary>
@@ -371,12 +366,8 @@ namespace DemoTest
                 // Begin or continue a jump
                 if ((!wasJumping && IsOnGround) || jumpTime > 0.0f)
                 {
-                    if (jumpTime == 0.0f)
-                        jumpSound.Play((Global.sound/10)*0.2f,0f,0f);
-
                     jumpTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
                     sprite.PlayAnimation(jumpAnimation);
-                    
                 }
 
                 // If we are in the ascent of the jump
@@ -408,7 +399,6 @@ namespace DemoTest
                 // If the player wants to attack
                 if (isAttacking)
                 {
-                    
                     // Begin or continue an attack
                     if (AttackTime > 0.0f)
                     {
@@ -417,17 +407,10 @@ namespace DemoTest
                         velocity.Y = 0;
                         movement = 0.0f;
                         isJumping = false;
-                        if (!isAttackSound)
-                        {
-                            attackSound.Play(Global.sound / 10, 0f, 0f);
-                            isAttackSound = true;
-                        }
-                        
                     }
                     else
                     {
                         isAttacking = false;
-                        isAttackSound = false;
                     }
                 }
                 else
@@ -445,7 +428,6 @@ namespace DemoTest
         public void OnKilled()
         {
             sprite.PlayAnimation(dyingAnimation);
-            killedSound.Play(Global.sound/10,0f,0f);
             hitPoints = 0;
             isAlive = false;
         }

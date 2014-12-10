@@ -22,8 +22,8 @@ namespace DemoTest
         [Serializable]
         public struct OptionsData
         {
-            public float soundVolume;
-            public float musicVolume;
+            public int soundVolume;
+            public int musicVolume;
         }
 
         [Serializable]
@@ -36,8 +36,6 @@ namespace DemoTest
             public int vit;
             public Vector2 position;
             public int levelIndex;
-            public Vector2[] enemies;
-            public bool[] aliveEnemies;
         }
 
         #endregion
@@ -143,8 +141,6 @@ namespace DemoTest
                     vit = Global.vit,
                     position = Global.position,
                     levelIndex = Global.levelIndex,
-                    enemies = Global.enemies,
-                    aliveEnemies = Global.aliveEnemy,
                 };
                 IAsyncResult r = device.BeginOpenContainer(containerName, null, null);
                 result.AsyncWaitHandle.WaitOne();
@@ -182,8 +178,6 @@ namespace DemoTest
                 Global.vit = data.vit;
                 Global.position = data.position;
                 Global.levelIndex = data.levelIndex;
-                Global.enemies = data.enemies;
-                Global.aliveEnemy = data.aliveEnemies;
                 Global.saveExists = true;
             }
             else

@@ -56,7 +56,7 @@ namespace DemoTest.Game.Screens
             if (content == null)
                 content = new ContentManager(ScreenManager.Game.Services, "Content");
 
-            backgroundTexture = content.Load<Texture2D>("Screens/mainMenuBG");
+            backgroundTexture = content.Load<Texture2D>("Screens/placeHolderBackground");
         }
 
 

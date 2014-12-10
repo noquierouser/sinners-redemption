@@ -9,7 +9,6 @@
 
 #region Using Statements
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Media;
 using DemoTest.Game.ScreenManagers;
 #endregion
 
@@ -21,6 +20,8 @@ namespace DemoTest.Game.Screens
     class MainMenuScreenX : MenuScreen
     {
         #region Initialization
+
+
         /// <summary>
         /// Constructor fills in the menu contents.
         /// </summary>
@@ -44,7 +45,6 @@ namespace DemoTest.Game.Screens
             MenuEntries.Add(continueGameMenuEntry);
             MenuEntries.Add(optionsMenuEntry);
             MenuEntries.Add(exitMenuEntry);
-            
         }
 
 
@@ -74,7 +74,7 @@ namespace DemoTest.Game.Screens
             }
             else
             {
-                const string message = "No savedata found. Start a new game.";
+                const string message = "Hola, no hay datos, toplel";
 
                 MessageBoxScreen noData = new MessageBoxScreen(message, false);
 
