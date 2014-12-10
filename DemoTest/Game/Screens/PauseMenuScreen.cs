@@ -9,6 +9,7 @@
 
 #region Using Statements
 using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 using DemoTest.Game;
 #endregion
 
@@ -31,7 +32,8 @@ namespace DemoTest.Game.Screens
         int vit;        
         Vector2 position;
         int levelIndex;
-                
+        Vector2[] enemies;
+        bool[] aliveEnemies;
         
         /// <summary>
         /// Constructor.
@@ -44,7 +46,9 @@ namespace DemoTest.Game.Screens
                 int dex,
                 int vit,
                 Vector2 position,
-                int levelIndex
+                int levelIndex,
+                Vector2[] enemies,
+                bool[] aliveEnemies
             )
             : base("Paused")
         {
@@ -55,6 +59,8 @@ namespace DemoTest.Game.Screens
             this.vit = vit;
             this.position = position;
             this.levelIndex = levelIndex;
+            this.enemies = enemies;
+            this.aliveEnemies = aliveEnemies;
 
             // Create our menu entries.
             MenuEntry resumeGameMenuEntry = new MenuEntry("Resume Game");
@@ -109,6 +115,8 @@ namespace DemoTest.Game.Screens
             Global.vit = vit;
             Global.position = position;
             Global.levelIndex = levelIndex-1;
+            Global.enemies = enemies;
+            Global.aliveEnemy = aliveEnemies;
             save.InitiateSavePlayer();            
             LoadingScreen.Load(ScreenManager, false, null, new BackgroundScreen(),
                                                            new MainMenuScreenX());

@@ -96,7 +96,7 @@ namespace DemoTest.Game.Screens
 
         void SoundMenuEntryRight(object sender, PlayerIndexEventArgs e)
         {
-            if (Global.sound < 100)
+            if (Global.sound < 10)
                 Global.sound++;
 
             SetMenuEntryText();
@@ -112,7 +112,7 @@ namespace DemoTest.Game.Screens
 
         void MusicMenuEntryRight(object sender, PlayerIndexEventArgs e)
         {
-            if (Global.music < 100)
+            if (Global.music < 10)
                 Global.music++;
 
             SetMenuEntryText();
