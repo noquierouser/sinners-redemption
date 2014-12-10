@@ -363,7 +363,7 @@ namespace DemoTest
 
         private void OnEnemyKilled(Enemy enemy, Player killedBy)
         {
-            enemy.OnKilled(killedBy);
+            enemy.OnKilled();
         }
 
         private void DrawTiles(SpriteBatch spriteBatch)

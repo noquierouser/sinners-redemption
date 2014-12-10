@@ -9,6 +9,7 @@
 
 using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace DemoTest
@@ -32,6 +33,8 @@ namespace DemoTest
         public int str;
         public int dex;
         public int vit;
+
+        private SoundEffect killedSound;
 
         public Level Level
         {
@@ -154,6 +157,8 @@ namespace DemoTest
             int height = (int)(idleAnimation.FrameWidth * 0.7);
             int top = idleAnimation.FrameHeight - height;
             localBounds = new Rectangle(left, top, width, height);
+
+            killedSound = Level.Content.Load<SoundEffect>("Sounds/death");
         }
 
 
@@ -167,8 +172,8 @@ namespace DemoTest
             if (!isAlive)
                 deathTime -= (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            if (hitPoints == 0)
-                isAlive = false;
+            if (hitPoints == 0 && isAlive)
+                OnKilled();
 
             // Calculate tile position based on the side we are walking towards.
             float posX = Position.X + localBounds.Width / 2 * (int)direction;
@@ -244,9 +249,10 @@ namespace DemoTest
             sprite.Draw(gameTime, spriteBatch, Position, flip);
         }
 
-        public void OnKilled(Player killedBy)
+        public void OnKilled()
         {
-            isAlive = false;            
+            isAlive = false;
+            killedSound.Play(Global.sound/10,0f,0f);
         }
     }
 }

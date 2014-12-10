@@ -9,6 +9,7 @@
 
 #region Using Statements
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Media;
 using System.Collections.Generic;
 using DemoTest.Game;
 #endregion
@@ -34,6 +35,7 @@ namespace DemoTest.Game.Screens
         int levelIndex;
         Vector2[] enemies;
         bool[] aliveEnemies;
+        Song music;
         
         /// <summary>
         /// Constructor.

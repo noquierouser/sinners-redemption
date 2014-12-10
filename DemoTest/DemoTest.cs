@@ -4,6 +4,7 @@ using System.IO;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Storage;
@@ -26,7 +27,11 @@ namespace DemoTest
         Vector2 baseScreenSize = new Vector2(800, 600);
 
         SaveLoadData load = new SaveLoadData();
-         
+        Song music;
+        Song music1;
+        Song music2;
+        Song music3;
+
         private SpriteFont hudFont;
         public SpriteFont gameFont;
         private Vector2[] enemies = new Vector2[100];
@@ -78,11 +83,11 @@ namespace DemoTest
             load.InitiateLoadOptions();
             load.InitiateLoadPlayer();
 
-            // Activate background screen
+            // Activate background screen            
             screenManager.AddScreen(new BackgroundScreen(), null);
 
             // Activate main menu screen
-            screenManager.AddScreen(new MainMenuScreenX(), null);
+            screenManager.AddScreen(new MainMenuScreenX(), null);            
             
             base.Initialize();
         }
@@ -98,7 +103,9 @@ namespace DemoTest
 
             hudFont = Content.Load<SpriteFont>("Fonts/Hud");
             gameFont = Content.Load<SpriteFont>("Fonts/gamefont");
-            
+            music = Content.Load<Song>("Music/level1");
+
+            MediaPlayer.Play(music);
             LoadNextLevel();
             // TODO: use this.Content to load your game content here
         }
@@ -118,7 +125,9 @@ namespace DemoTest
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
-        {            
+        {
+            MediaPlayer.Volume = Global.music / 10;
+
             if (!Global.isPaused)
             {
                 HandleInput();
