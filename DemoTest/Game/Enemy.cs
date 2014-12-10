@@ -116,7 +116,7 @@ namespace DemoTest
             LoadContent(spriteSet);
             if (spriteSet == "EnemyA")
             {
-                this.maxHitPoints = 3;
+                this.maxHitPoints = 4;
                 this.hitPoints = this.maxHitPoints;
                 this.str = 5;
                 this.dex = 0;
@@ -124,7 +124,7 @@ namespace DemoTest
             }
             if (spriteSet == "EnemyB")
             {
-                this.maxHitPoints = 10;
+                this.maxHitPoints = 18;
                 this.hitPoints = this.maxHitPoints;
                 this.str = 25;
                 this.dex = 0;
@@ -132,7 +132,7 @@ namespace DemoTest
             }
             if (spriteSet == "EnemyC")
             {
-                this.maxHitPoints = 8;
+                this.maxHitPoints = 12;
                 this.str = 10;
                 this.dex = 0;
                 this.vit = 100;
